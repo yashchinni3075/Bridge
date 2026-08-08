@@ -1,17 +1,15 @@
-import { useState } from 'react'
+import { useState } from "react";
+import LandingPage from "./pages/LandingPage/LandingPage";
+import LoginPage from "./pages/LoginPage/LoginPage";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [page, setPage] = useState("home");
 
-  return (
-    <>
-    <h1 className="text-3xl font-bold">
-    Let's build "Bridge–AI-Driven Skill and Investment Matchmaking Platform for Early
-Stage Entrepreneurs"
-   </h1>
+  if (page === "login") {
+    return <LoginPage onBackHome={() => setPage("home")} />;
+  }
 
-    </>
-  )
+  return <LandingPage onLogin={() => setPage("login")} />;
 }
 
-export default App
+export default App;
