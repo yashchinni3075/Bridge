@@ -112,5 +112,3 @@ bugfix-login
 * Communicate with the team if your changes affect shared files.
 
 Let's keep the repository clean, organized, and easy to maintain. Happy coding! 🚀
-
-
