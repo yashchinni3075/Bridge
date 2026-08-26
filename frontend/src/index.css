@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-founda-line bg-white shadow-soft;
+  }
+
+  .btn-primary {
+    @apply rounded-xl bg-founda-purple px-4 py-2.5 text-sm font-bold text-white shadow-glow transition hover:bg-founda-violet;
+  }
+
+  .btn-secondary {
+    @apply rounded-xl border border-founda-line bg-white px-4 py-2.5 text-sm font-bold text-founda-ink transition hover:border-founda-purple hover:text-founda-purple;
+  }
+
+  .input {
+    @apply mt-1 w-full rounded-xl border border-founda-line bg-white px-3 py-2.5 text-sm outline-none transition focus:border-founda-purple focus:ring-4 focus:ring-founda-purple/10;
+  }
+
+  .label {
+    @apply text-xs font-extrabold uppercase tracking-wide text-slate-500;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold;
+  }
+}
