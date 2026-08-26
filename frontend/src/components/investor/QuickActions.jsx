@@ -1,6 +1,5 @@
 import { Compass, Bookmark, Users, ArrowUpRight } from 'lucide-react'
 
-// Quick action shortcuts.
 const quickActions = [
   {
     id: 'discover',
@@ -22,12 +21,11 @@ const quickActions = [
   },
 ]
 
-// Shortcut cards for frequently used flows.
 function QuickActions() {
   return (
     <section aria-labelledby="quick-actions-heading">
       <div className="mb-5">
-        <h2 id="quick-actions-heading" className="text-xl font-bold tracking-tight text-slate-900">
+        <h2 id="quick-actions-heading" className="text-xl font-bold tracking-tight text-white">
           Quick Actions
         </h2>
       </div>
@@ -37,16 +35,16 @@ function QuickActions() {
           <button
             key={id}
             type="button"
-            className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+            className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#111827] p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#3157ff]/30 hover:shadow-md hover:shadow-blue-900/20"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3157ff]/15 text-[#5b8aff] transition-colors group-hover:bg-[#3157ff] group-hover:text-white">
               <Icon className="h-5 w-5" strokeWidth={1.8} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-slate-900">{label}</span>
-              <span className="block text-xs text-slate-500">{description}</span>
+              <span className="block text-sm font-semibold text-white">{label}</span>
+              <span className="block text-xs text-gray-500">{description}</span>
             </span>
-            <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-600" />
+            <ArrowUpRight className="h-4 w-4 shrink-0 text-gray-600 transition-colors group-hover:text-[#5b8aff]" />
           </button>
         ))}
       </div>

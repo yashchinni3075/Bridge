@@ -26,7 +26,7 @@ export default function FreelancerLayout() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0a0f1e] text-gray-100">
       <Header />
       <div className="flex min-h-[calc(100vh-68px)] flex-col md:flex-row">
         <Sidebar page={page} setPage={setPage} />

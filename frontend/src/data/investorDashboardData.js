@@ -1,55 +1,29 @@
-// --------------------------------------------------
-// Mock data for the Investor Dashboard.
-//
-// All values here are static/demo only — replace them
-// with real API responses once the backend is integrated.
-// Funding amounts are stored in lakhs (₹) — see utils/format.js.
-// --------------------------------------------------
-
-// Logged-in investor profile.
-// TODO: Replace with the authenticated user response.
 export const investorProfile = {
   name: 'Rahul Patil',
   firstName: 'Rahul',
   email: 'rahul.patil@example.com',
   role: 'Investor',
   initials: 'RP',
-  verified: true,
 }
 
-// Overview stat cards at the top of the dashboard.
 export const overviewStats = [
   {
     id: 'recommended',
-    label: 'Recommended Startups',
+    label: 'Recommended',
     value: 24,
-    hint: 'Startups matching your interests',
   },
   {
     id: 'saved',
-    label: 'Saved Startups',
+    label: 'Saved',
     value: 8,
-    hint: 'Startups you bookmarked',
-  },
-  {
-    id: 'pending',
-    label: 'Pending Connections',
-    value: 5,
-    hint: 'Connections awaiting a response',
   },
   {
     id: 'active',
-    label: 'Active Connections',
+    label: 'Connected',
     value: 12,
-    hint: 'Startups you are connected with',
   },
 ]
 
-// --------------------------------------------------
-// AI-recommended startups.
-// aiMatch and pitchScore are mock/demo values that will
-// later come from the AI matchmaking and pitch-evaluation services.
-// --------------------------------------------------
 export const recommendedStartups = [
   {
     id: 'finova',
@@ -89,38 +63,6 @@ export const recommendedStartups = [
   },
 ]
 
-// Startup credibility evaluation shown in the table.
-export const startupCredibility = [
-  {
-    id: 'finova',
-    name: 'Finova',
-    industry: 'FinTech',
-    pitchScore: 91,
-    progress: 72,
-    aiMatch: 94,
-    status: 'Strong Match',
-  },
-  {
-    id: 'healthsync',
-    name: 'HealthSync',
-    industry: 'Healthcare',
-    pitchScore: 88,
-    progress: 64,
-    aiMatch: 89,
-    status: 'Good Match',
-  },
-  {
-    id: 'agrosense',
-    name: 'AgroSense',
-    industry: 'Agriculture',
-    pitchScore: 86,
-    progress: 68,
-    aiMatch: 86,
-    status: 'Good Match',
-  },
-]
-
-// Recent startup connections.
 export const recentConnections = [
   {
     id: 'finova',
@@ -145,7 +87,6 @@ export const recentConnections = [
   },
 ]
 
-// Recent notifications. isRead drives the unread badge count.
 export const notifications = [
   {
     id: 'n1',
@@ -160,19 +101,5 @@ export const notifications = [
     text: 'A new startup matched your investment preferences.',
     time: '1 hr ago',
     isRead: false,
-  },
-  {
-    id: 'n3',
-    type: 'milestone',
-    text: 'HealthSync updated its startup milestone.',
-    time: '3 hrs ago',
-    isRead: false,
-  },
-  {
-    id: 'n4',
-    type: 'update',
-    text: 'Your saved startup AgroSense added a new update.',
-    time: 'Yesterday',
-    isRead: true,
   },
 ]

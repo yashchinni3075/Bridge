@@ -1,13 +1,10 @@
-// Reusable status badge with a small set of predefined tones.
-// Used for connection status and credibility/match labels.
-
 const TONES = {
-  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-  indigo: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-200',
-  red: 'bg-red-50 text-red-700 ring-red-200',
-  slate: 'bg-slate-100 text-slate-600 ring-slate-200',
+  emerald: 'bg-emerald-500/15 text-emerald-400 ring-emerald-500/20',
+  amber: 'bg-amber-500/15 text-amber-400 ring-amber-500/20',
+  indigo: 'bg-[#3157ff]/15 text-[#5b8aff] ring-[#3157ff]/20',
+  blue: 'bg-blue-500/15 text-blue-400 ring-blue-500/20',
+  red: 'bg-red-500/15 text-red-400 ring-red-500/20',
+  slate: 'bg-white/5 text-gray-400 ring-white/10',
 }
 
 function StatusBadge({ label, tone = 'slate' }) {

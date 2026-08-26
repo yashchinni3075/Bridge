@@ -17,7 +17,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#061330] px-5 py-10 text-white md:px-10">
+    <footer className="bg-[#060b18] px-5 py-10 text-white md:px-10">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr]">
         <div>
           <a href="#top" className="flex items-center gap-2 text-lg font-extrabold">
@@ -29,12 +29,12 @@ export default function Footer() {
             </span>
             Bridge
           </a>
-          <p className="mt-3 max-w-xs text-sm font-medium leading-6 text-slate-300">
+          <p className="mt-3 max-w-xs text-sm font-medium leading-6 text-gray-400">
             Connecting founders, skills and capital for a better tomorrow.
           </p>
           <div className="mt-5 flex gap-2">
             {["f", "x", "in", "yt"].map((item) => (
-              <span key={item} className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-slate-200">
+              <span key={item} className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-[11px] font-bold text-gray-400">
                 {item}
               </span>
             ))}
@@ -47,7 +47,7 @@ export default function Footer() {
             <ul className="mt-4 space-y-3">
               {column.links.map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm font-medium text-slate-300 transition hover:text-white">
+                  <a href="#" className="text-sm font-medium text-gray-400 transition hover:text-white">
                     {link}
                   </a>
                 </li>
@@ -56,7 +56,7 @@ export default function Footer() {
           </div>
         ))}
 
-        <div className="text-sm font-medium text-slate-300 md:text-right">
+        <div className="text-sm font-medium text-gray-400 md:text-right">
           (c) {year} Bridge. All rights reserved.
         </div>
       </div>

@@ -14,17 +14,17 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden bg-white text-[#07142f]">
-      <Navbar onLogin={() => navigate("/login")} />
+    <div className="min-h-screen flex flex-col overflow-hidden bg-[#0a0f1e] text-gray-100">
+      <Navbar onLogin={() => navigate("/login")} onRegister={() => navigate("/register")} />
       <main className="flex-1">
-        <Hero />
+        <Hero onRegister={() => navigate("/register")} />
         <HowItWorks />
         <CommunityStats />
         <Challenge />
         <ProcessSteps />
         <Features />
         <Testimonials />
-        <CTASection />
+        <CTASection onRegister={() => navigate("/register")} />
       </main>
       <Footer />
     </div>

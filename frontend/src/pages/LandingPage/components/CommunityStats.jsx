@@ -14,7 +14,7 @@ function StatIcon({ type }) {
   };
 
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-9 w-9 text-[#3157ff]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-9 w-9 text-[#5b8aff]">
       {paths[type]}
     </svg>
   );
@@ -23,15 +23,15 @@ function StatIcon({ type }) {
 export default function CommunityStats() {
   return (
     <section className="px-5 py-8 md:px-10">
-      <div className="mx-auto max-w-7xl rounded-2xl bg-[#061330] px-8 py-10 text-center shadow-2xl shadow-blue-950/20">
-        <p className="text-lg font-medium text-white">Our Growing Community</p>
+      <div className="mx-auto max-w-7xl rounded-2xl bg-[#111827] px-8 py-10 text-center shadow-2xl shadow-blue-950/30 ring-1 ring-white/5">
+        <p className="text-lg font-medium text-gray-300">Our Growing Community</p>
         <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <div key={stat.label} className="flex items-center justify-center gap-4 lg:border-r lg:border-white/20 last:lg:border-r-0">
+            <div key={stat.label} className="flex items-center justify-center gap-4 lg:border-r lg:border-white/10 last:lg:border-r-0">
               <StatIcon type={stat.icon} />
               <div className="text-left">
                 <div className="text-3xl font-black text-white">{stat.value}</div>
-                <div className="text-sm font-medium text-slate-300">{stat.label}</div>
+                <div className="text-sm font-medium text-gray-400">{stat.label}</div>
               </div>
             </div>
           ))}

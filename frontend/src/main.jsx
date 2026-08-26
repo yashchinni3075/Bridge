@@ -26,14 +26,14 @@ createRoot(document.getElementById("root")).render(
       <FreelancerProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<Register />} />
             <Route path="/investor-dashboard" element={<InvestorDashboard />} />
-            <Route path="/freelancer" element={<FreelancerLayout />} />
+            <Route path="/freelancer-dashboard" element={<FreelancerLayout />} />
 
             <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/startup-dashboard" element={<Dashboard />} />
               <Route path="/investors" element={<Investors />} />
               <Route path="/investors/:id" element={<InvestorProfile />} />
               <Route path="/teammates" element={<Teammates />} />

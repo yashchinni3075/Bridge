@@ -1,13 +1,9 @@
 import { useState } from 'react'
-import StartupCard from './StartupCard.jsx'
+import { Sparkles, Bookmark } from 'lucide-react'
 import { recommendedStartups } from '../../data/investorDashboardData.js'
+import ProgressBar from './ProgressBar.jsx'
+import { formatLakhs } from '../../utils/format.js'
 
-// --------------------------------------------------
-// AI Recommended Startups — the main section.
-// Bookmarks are tracked locally with a Set of saved ids.
-// Match/pitch scores are mock values that will later come
-// from the AI matchmaking and pitch-evaluation services.
-// --------------------------------------------------
 function RecommendedStartups() {
   const [savedIds, setSavedIds] = useState(() => new Set())
 
@@ -21,27 +17,58 @@ function RecommendedStartups() {
   }
 
   return (
-    <section aria-labelledby="ai-recommendations-heading">
-      <div className="mb-5">
-        <h2
-          id="ai-recommendations-heading"
-          className="text-xl font-bold tracking-tight text-slate-900"
-        >
-          AI Recommended Startups
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Startups matched to your investment interests
-        </p>
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-white">Recommended Startups</h2>
+        <button className="text-sm font-medium text-[#5b8aff] transition hover:text-[#3157ff]">
+          View All
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {recommendedStartups.map((startup) => (
-          <StartupCard
+          <article
             key={startup.id}
-            startup={startup}
-            saved={savedIds.has(startup.id)}
-            onToggleSave={() => toggleSave(startup.id)}
-          />
+            className="flex flex-col rounded-2xl border border-white/10 bg-[#111827] p-5 transition hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-900/20"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3157ff]/15 text-sm font-bold text-[#5b8aff]">
+                  {startup.name.charAt(0)}
+                </span>
+                <div>
+                  <h3 className="font-semibold text-white text-sm">{startup.name}</h3>
+                  <p className="text-xs text-gray-500">{startup.industry} · {startup.stage}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => toggleSave(startup.id)}
+                className={`rounded-lg p-1.5 transition ${
+                  savedIds.has(startup.id)
+                    ? 'bg-[#3157ff]/15 text-[#5b8aff]'
+                    : 'text-gray-500 hover:bg-white/5'
+                }`}
+              >
+                <Bookmark className="h-4 w-4" fill={savedIds.has(startup.id) ? 'currentColor' : 'none'} />
+              </button>
+            </div>
+
+            <p className="mt-3 text-xs text-gray-400 line-clamp-2">{startup.description}</p>
+
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-gray-500">Funding: {formatLakhs(startup.fundingRequired)}</span>
+              <span className="flex items-center gap-1 font-semibold text-[#5b8aff]">
+                <Sparkles className="h-3 w-3" />
+                {startup.aiMatch}%
+              </span>
+            </div>
+
+            <ProgressBar value={startup.progress} className="mt-2" />
+
+            <button className="mt-4 w-full rounded-xl bg-[#3157ff] py-2.5 text-sm font-semibold text-white transition hover:bg-[#2447e8]">
+              View Details
+            </button>
+          </article>
         ))}
       </div>
     </section>
