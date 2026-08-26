@@ -1,15 +1,9 @@
-import { useState } from "react";
-import LandingPage from "./pages/LandingPage/LandingPage";
-import LoginPage from "./pages/LoginPage/LoginPage";
-
 function App() {
-  const [page, setPage] = useState("home");
-
-  if (page === "login") {
-    return <LoginPage onBackHome={() => setPage("home")} />;
-  }
-
-  return <LandingPage onLogin={() => setPage("login")} />;
+  return (
+    <h1 className="text-3xl font-bold">
+      Bridge – AI-Driven Skill and Investment Matchmaking Platform
+    </h1>
+  )
 }
 
-export default App;
+export default App

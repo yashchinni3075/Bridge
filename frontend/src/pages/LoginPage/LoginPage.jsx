@@ -1,8 +1,12 @@
-export default function LoginPage({ onBackHome }) {
+import { useNavigate } from "react-router-dom";
+
+export default function LoginPage() {
+  const navigate = useNavigate();
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_10%,#dfe7ff_0,#f8fbff_32%,#ffffff_72%)] px-5 py-8 text-[#07142f] md:px-10">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <button onClick={onBackHome} className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+        <button onClick={() => navigate("/landing")} className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3157ff] text-white shadow-lg shadow-blue-500/25">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-5 w-5">
               <path d="M12 3 3.5 18h5l3.5-6 3.5 6h5L12 3Z" strokeLinecap="round" strokeLinejoin="round" />
@@ -12,7 +16,7 @@ export default function LoginPage({ onBackHome }) {
           Bridge
         </button>
 
-        <button onClick={onBackHome} className="rounded-lg border border-blue-100 bg-white px-5 py-2.5 text-sm font-bold shadow-sm transition hover:border-[#3157ff] hover:text-[#3157ff]">
+        <button onClick={() => navigate("/landing")} className="rounded-lg border border-blue-100 bg-white px-5 py-2.5 text-sm font-bold shadow-sm transition hover:border-[#3157ff] hover:text-[#3157ff]">
           Back Home
         </button>
       </div>
@@ -72,7 +76,7 @@ export default function LoginPage({ onBackHome }) {
             </button>
           </div>
 
-          <button type="button" className="mt-7 w-full rounded-xl bg-[#3157ff] px-6 py-4 text-sm font-extrabold text-white shadow-xl shadow-blue-500/25 transition hover:bg-[#2447e8]">
+          <button type="button" onClick={() => navigate("/")} className="mt-7 w-full rounded-xl bg-[#3157ff] px-6 py-4 text-sm font-extrabold text-white shadow-xl shadow-blue-500/25 transition hover:bg-[#2447e8]">
             Log in to Bridge
           </button>
 
@@ -88,7 +92,7 @@ export default function LoginPage({ onBackHome }) {
 
           <p className="mt-7 text-center text-sm font-medium text-slate-500">
             New to Bridge?{" "}
-            <button type="button" className="font-extrabold text-[#3157ff]">
+            <button type="button" onClick={() => navigate("/register")} className="font-extrabold text-[#3157ff]">
               Create an account
             </button>
           </p>
