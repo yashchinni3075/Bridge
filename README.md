@@ -1,4 +1,4 @@
-# Founda — React + Vite + Tailwind CSS MVP
+# Bridge— React + Vite + Tailwind CSS MVP
 
 ## Stack
 - React
