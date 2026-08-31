@@ -19,6 +19,7 @@ import PitchScorePage from "./pages/PitchScorePage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import InvestorDashboard from "./pages/investor/InvestorDashboard.jsx";
 import FreelancerLayout from "./pages/freelancer/FreelancerLayout.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -31,6 +32,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="/register" element={<Register />} />
             <Route path="/investor-dashboard" element={<InvestorDashboard />} />
             <Route path="/freelancer-dashboard" element={<FreelancerLayout />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
             <Route element={<Layout />}>
               <Route path="/startup-dashboard" element={<Dashboard />} />
