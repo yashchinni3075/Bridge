@@ -1,47 +1,21 @@
 import { useState } from "react";
-import { pitchScore as staticScore } from "../data/dummyData";
 import { Button, Card } from "../components/ui";
+import { Loader2, CircleCheck, TriangleAlert, Lightbulb } from "lucide-react";
 
-// Same lightweight rule-based scorer as the backend placeholder,
-// reproduced client-side so this page works standalone today.
-function scoreText(text) {
-  const t = text.toLowerCase();
-  const has = (words) => words.some((w) => t.includes(w));
-  const words = t.split(/\s+/).filter(Boolean).length;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-  const marketClarity = has(["market", "customer", "problem", "target"])
-    ? Math.min(90, 70 + words / 10)
-    : 40;
-  const traction = has(["users", "revenue", "growth", "customers", "sales"])
-    ? Math.min(90, 65 + words / 12)
-    : 35;
-  const team = has(["team", "founder", "experience", "co-founder"]) ? 70 : 45;
-  const financials = has(["funding", "raise", "valuation", "revenue", "burn"])
-    ? 60
-    : 35;
-  const askClarity = has(["ask", "raising", "seeking", "investment of"]) ? 80 : 50;
+const MIN_CHARS = 150;
+const MIN_WORDS = 30;
+const LETTER_RATIO = 0.6;
+const REJECTION_MSG =
+  "Please provide a meaningful startup pitch containing problem, solution, market, traction, team, business model and funding ask.";
+const UNAVAILABLE_MSG = "Pitch scoring service is temporarily unavailable. Please try again.";
 
-  const breakdown = {
-    "Market Clarity": Math.round(marketClarity),
-    "Traction Proof": Math.round(traction),
-    "Team Strength": Math.round(team),
-    "Financial Model": Math.round(financials),
-    "Ask Clarity": Math.round(askClarity),
-  };
-  const overall = Math.round(
-    Object.values(breakdown).reduce((a, b) => a + b, 0) / 5
-  );
-
-  const notes = [];
-  if (breakdown["Traction Proof"] < 55)
-    notes.push("Traction proof is weak — add concrete user/revenue numbers.");
-  if (breakdown["Financial Model"] < 55)
-    notes.push("Financial details are unclear — clarify ask and use of funds.");
-  if (breakdown["Market Clarity"] < 55)
-    notes.push("Market/problem statement needs to be more specific.");
-  if (notes.length === 0) notes.push("Solid pitch structure overall.");
-
-  return { overall, breakdown, notes: notes.join(" ") };
+function validatePitch(text) {
+  if (text.length < MIN_CHARS) return REJECTION_MSG;
+  if (text.trim().split(/\s+/).filter(Boolean).length < MIN_WORDS) return REJECTION_MSG;
+  if (text.replace(/[^a-zA-Z]/g, "").length / text.length < LETTER_RATIO) return REJECTION_MSG;
+  return null;
 }
 
 function ScoreRing({ value }) {
@@ -61,23 +35,83 @@ function ScoreRing({ value }) {
   );
 }
 
+function Section({ icon, title, items, emptyText }) {
+  if (!items?.length) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-ink-soft">
+        {icon}
+        <span className="font-medium">{title}:</span>
+        <span>{emptyText}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start gap-2">
+      <span className="mt-1 shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{title}</span>
+        <ul className="mt-1 space-y-1 text-sm leading-relaxed">
+          {items.map((item, i) => (
+            <li key={i} className="flex items-start gap-1.5">
+              <span className="mt-1.5 block h-1 w-1 shrink-0 rounded-full bg-current opacity-40" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function PitchScore() {
   const [text, setText] = useState("");
-  const [result, setResult] = useState(staticScore);
+  const [result, setResult] = useState(null);
+  const [scoring, setScoring] = useState(false);
 
-  function handleScore() {
-    if (!text.trim()) return;
-    const r = scoreText(text);
-    setResult(r);
+  async function handleScore() {
+    if (!text.trim() || scoring) return;
+
+    const validationErr = validatePitch(text.trim());
+    if (validationErr) {
+      setResult({ valid: false, message: validationErr });
+      return;
+    }
+
+    setScoring(true);
+    try {
+      const res = await fetch(`${API_URL}/api/pitch-score`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.valid === false) {
+        throw new Error(data.message || `Scoring failed (${res.status})`);
+      }
+      setResult(data);
+    } catch (err) {
+      setResult({ valid: false, message: err.message || UNAVAILABLE_MSG });
+    } finally {
+      setScoring(false);
+    }
   }
+
+  const categories = result?.valid
+    ? [
+        { label: "Market Clarity", value: result.marketClarity },
+        { label: "Traction Proof", value: result.tractionProof },
+        { label: "Team Strength", value: result.teamStrength },
+        { label: "Financial Model", value: result.financialModel },
+        { label: "Ask Clarity", value: result.askClarity },
+      ]
+    : [];
 
   return (
     <div>
       <header className="border-b border-line pb-5 mb-7">
         <h1 className="font-display font-semibold text-[28px]">AI Pitch Readiness</h1>
         <p className="text-sm text-ink-soft mt-1.5">
-          Paste your pitch summary — this is a placeholder rule-based scorer;
-          swap for a real LLM API call once the backend is connected.
+          Paste your pitch summary — AI analyzes it, scores it, and suggests concrete ways to raise the score.
         </p>
       </header>
 
@@ -89,27 +123,68 @@ export default function PitchScore() {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <Button onClick={handleScore}>Score this pitch</Button>
+        <Button onClick={handleScore} disabled={!text.trim() || scoring}>
+          {scoring ? (
+            <>
+              <Loader2 size={14} className="animate-spin" /> Analyzing…
+            </>
+          ) : (
+            "Score this pitch"
+          )}
+        </Button>
       </Card>
 
-      <div className="bg-paper-raised border border-line rounded-card p-6 grid grid-cols-[150px_1fr] gap-7">
-        <ScoreRing value={result.overall} />
-        <div className="flex flex-col gap-2.5 justify-center">
-          {Object.entries(result.breakdown).map(([label, val]) => (
-            <div key={label} className="grid grid-cols-[130px_1fr_34px] items-center gap-2.5">
-              <span className="text-xs text-ink-soft">{label}</span>
-              <div className="h-1.5 bg-line rounded-full overflow-hidden">
-                <div className="h-full bg-emerald rounded-full" style={{ width: `${val}%` }} />
-              </div>
-              <span className="text-xs font-mono text-right">{val}</span>
-            </div>
-          ))}
+      {result?.valid === false && (
+        <div className="mb-4 flex items-start gap-2 rounded-card border border-rose/25 bg-rose-soft p-4 text-sm font-medium text-rose">
+          <TriangleAlert size={14} className="mt-0.5 shrink-0" />
+          <span>{result.message}</span>
         </div>
-      </div>
+      )}
 
-      <div className="mt-4 bg-amber-soft border border-[#F0D19E] rounded-card p-4 text-sm text-[#8A611E]">
-        <b className="font-display">AI note:</b> {result.notes}
-      </div>
+      {result?.valid && (
+        <>
+          <div className="bg-paper-raised border border-line rounded-card p-6 grid grid-cols-[150px_1fr] gap-7">
+            <ScoreRing value={result.totalScore} />
+            <div className="flex flex-col gap-2.5 justify-center">
+              {categories.map(({ label, value }) => (
+                <div key={label} className="grid grid-cols-[130px_1fr_50px] items-center gap-2.5">
+                  <span className="text-xs text-ink-soft">{label}</span>
+                  <div className="h-1.5 bg-line rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        value >= 14 ? "bg-emerald" : value >= 9 ? "bg-amber" : "bg-rose"
+                      }`}
+                      style={{ width: `${(value / 20) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono text-right">{value}/20</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3 border border-line rounded-card bg-paper-raised p-5">
+            <Section
+              icon={<CircleCheck size={14} className="text-emerald" />}
+              title="Strengths"
+              items={result.strengths}
+              emptyText="No specific strengths identified."
+            />
+            <Section
+              icon={<TriangleAlert size={14} className="text-rose" />}
+              title="Weaknesses"
+              items={result.weaknesses}
+              emptyText="No specific weaknesses identified."
+            />
+            <Section
+              icon={<Lightbulb size={14} />}
+              title="Suggestions to raise your score"
+              items={result.suggestions}
+              emptyText="No specific suggestions."
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }

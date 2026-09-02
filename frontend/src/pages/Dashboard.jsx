@@ -66,10 +66,10 @@ export default function Dashboard() {
               {profile.status === "pending_review" && "Your profile is awaiting Admin verification."}
             </b>{" "}
             {profile.status !== "pending_review" &&
-              "Admin can't verify your startup until every required field, registration proof, domain check, and pitch deck are complete."}
+              "Admin can't verify your startup until every required field, registration proof, and pitch deck are complete."}
           </div>
           {profile.status !== "pending_review" && (
-            <Link to="/profile" className="shrink-0">
+            <Link to="/profile/edit" className="shrink-0">
               <Button>
                 <span className="flex items-center gap-1.5">
                   Complete profile <ArrowRight size={13} />

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, Navigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Handshake, Milestone, FileText,
-  UserCircle, CalendarDays, RotateCcw, Menu, X,
+  UserCircle, CalendarDays, LogOut, Menu, X, Loader2,
 } from "lucide-react";
 import { useAppState } from "../context/AppStateContext";
 import { VerifyBadge, Avatar } from "./ui";
@@ -15,7 +15,7 @@ const navItems = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/milestones", label: "Milestones", icon: Milestone },
   { to: "/pitch", label: "Pitch Score", icon: FileText },
-  { to: "/profile", label: "Complete Profile", icon: UserCircle },
+  { to: "/profile", label: "My Profile", icon: UserCircle },
 ];
 
 const SECTION_TITLES = {
@@ -25,21 +25,30 @@ const SECTION_TITLES = {
   "/calendar": "Calendar",
   "/milestones": "Milestones",
   "/pitch": "Pitch Score",
-  "/profile": "Complete Profile",
+  "/profile": "My Profile",
+  "/profile/edit": "Edit Profile",
 };
 
 function profileCompletionPercent(profile) {
   const fields = [
     profile.startupName, profile.sector, profile.stage, profile.description,
     profile.ask, profile.city, profile.registrationProofFile,
-    profile.domainVerification?.status === "verified", profile.pitchDeckFile,
+    profile.domainVerification?.domain ? profile.domainVerification?.status === "verified" : true,
+    profile.pitchDeckFile,
   ];
   const filled = fields.filter(Boolean).length;
   return Math.round((filled / fields.length) * 100);
 }
 
 function SidebarContent({ auth, profile, completion, onNavigate }) {
-  const { resetAll } = useAppState();
+  const { signOut } = useAppState();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await signOut();
+  }
+
   return (
     <div className="flex h-full flex-col gap-7 overflow-y-auto p-6">
       <div className="flex items-center gap-2.5">
@@ -96,12 +105,12 @@ function SidebarContent({ auth, profile, completion, onNavigate }) {
           </div>
         </div>
         <button
-          onClick={() => {
-            if (window.confirm("Reset all demo data (account, profile, events, notifications)?")) resetAll();
-          }}
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-semibold text-white/60 transition-colors hover:bg-white/10 hover:text-white"
         >
-          <RotateCcw size={11} /> Reset demo data
+          {signingOut ? <Loader2 size={13} className="animate-spin" /> : <LogOut size={13} />}
+          {signingOut ? "Signing out..." : "Sign out"}
         </button>
       </div>
     </div>
@@ -109,9 +118,17 @@ function SidebarContent({ auth, profile, completion, onNavigate }) {
 }
 
 export default function Layout() {
-  const { auth, profile } = useAppState();
+  const { auth, profile, loading } = useAppState();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="grid min-h-screen place-items-center">
+        <Loader2 size={28} className="animate-spin text-brand" />
+      </div>
+    );
+  }
 
   if (!auth) return <Navigate to="/register" replace />;
 

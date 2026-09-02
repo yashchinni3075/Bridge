@@ -13,14 +13,15 @@ const navItems = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/milestones", label: "Milestones", icon: Milestone },
   { to: "/pitch", label: "Pitch Score", icon: FileText },
-  { to: "/profile", label: "Complete Profile", icon: UserCircle },
+  { to: "/profile", label: "My Profile", icon: UserCircle },
 ];
 
 function profileCompletionPercent(profile) {
   const fields = [
     profile.startupName, profile.sector, profile.stage, profile.description,
     profile.ask, profile.city, profile.registrationProofFile,
-    profile.domainVerification?.status === "verified", profile.pitchDeckFile,
+    profile.domainVerification?.domain ? profile.domainVerification?.status === "verified" : true,
+    profile.pitchDeckFile,
   ];
   const filled = fields.filter(Boolean).length;
   return Math.round((filled / fields.length) * 100);

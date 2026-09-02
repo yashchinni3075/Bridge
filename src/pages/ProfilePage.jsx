@@ -1,4 +1,6 @@
-import { CheckCircle2, Plus, X, ShieldCheck, Circle, Building2, FileBadge, Presentation, ClipboardCheck } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { CheckCircle2, Plus, X, ShieldCheck, Circle, Building2, FileBadge, Presentation, ClipboardCheck, ArrowLeft } from "lucide-react";
 import { useAppState } from "../context/AppStateContext";
 import { LINK_PLATFORMS } from "../data/dummyData";
 import { Button, Card, VerifyBadge, PageHead, inputCls } from "../components/ui";
@@ -64,14 +66,14 @@ function LinksEditor({ links, onChange }) {
   return (
     <div className="space-y-2.5">
       {links.map((link, i) => (
-        <div key={i} className="flex gap-2">
-          <select className={`${inputCls} w-44 shrink-0`} value={link.platform} onChange={(e) => updateLink(i, { platform: e.target.value })}>
+        <div key={i} className="flex items-center gap-2">
+          <select className={`${inputCls} w-32 shrink-0 overflow-hidden text-ellipsis`} value={link.platform} onChange={(e) => updateLink(i, { platform: e.target.value })}>
             {LINK_PLATFORMS.map((p) => (
               <option key={p}>{p}</option>
             ))}
           </select>
           <input
-            className={inputCls}
+            className={`${inputCls} min-w-0 flex-1`}
             placeholder="https://..."
             value={link.url}
             onChange={(e) => updateLink(i, { url: e.target.value })}
@@ -113,18 +115,26 @@ function SectionCard({ step, icon: Icon, title, blurb, children }) {
 export default function ProfilePage() {
   const { profile, updateProfile, submitProfileForReview, notify } = useAppState();
 
+  const [submittedBefore] = useState(profile.status === "verified" || profile.status === "pending_review");
+
   const requiredFilled =
     profile.startupName && profile.sector && profile.stage && profile.description && profile.ask && profile.city;
 
-  const verificationDocsReady =
-    profile.registrationProofFile && profile.domainVerification?.status === "verified" && profile.pitchDeckFile;
+  const verificationDocsReady = profile.registrationProofFile && profile.pitchDeckFile;
 
   const readyToSubmit = requiredFilled && verificationDocsReady;
+
+  // Any edit to a submitted/verified profile drops it back to draft so Admin
+  // has to re-verify it before the badge goes live again.
+  function handleChange(patch) {
+    const needsReVerify = profile.status === "verified" || profile.status === "pending_review";
+    updateProfile(needsReVerify ? { ...patch, status: "draft" } : patch);
+  }
 
   const checklist = [
     { done: !!requiredFilled, label: "All basic details filled" },
     { done: !!profile.registrationProofFile, label: "Registration proof uploaded" },
-    { done: profile.domainVerification?.status === "verified", label: "Company domain verified (WHOIS)" },
+    { done: !profile.domainVerification?.domain || profile.domainVerification?.status === "verified", label: "Company domain verified (optional)" },
     { done: !!profile.pitchDeckFile, label: "Pitch deck uploaded (.ppt/.pptx)" },
   ];
 
@@ -133,13 +143,25 @@ export default function ProfilePage() {
     notify({
       type: "success",
       icon: "doc",
-      title: "Profile submitted for review",
-      message: "Your startup is now pending Admin verification. We'll notify you once it's reviewed.",
+      title: submittedBefore ? "Changes submitted for review" : "Profile submitted for review",
+      message: submittedBefore
+        ? "Your updates are now pending Admin re-verification. We'll notify you once it's reviewed."
+        : "Your startup is now pending Admin verification. We'll notify you once it's reviewed.",
     });
   }
 
   return (
     <div className="mx-auto max-w-3xl">
+      <Link to="/profile" className="mb-4 inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline">
+        <ArrowLeft size={14} /> Back to My Profile
+      </Link>
+
+      {submittedBefore && profile.status !== "pending_review" && profile.status !== "verified" && (
+        <div className="mb-6 flex items-center gap-2.5 rounded-card border border-amber/25 bg-amber-soft p-4 text-sm font-semibold text-amber">
+          <ShieldCheck size={17} className="shrink-0" />
+          You're editing a previously submitted profile — once you submit these changes, Admin will need to re-verify it.
+        </div>
+      )}
       <PageHead
         title="Complete Your Profile"
         subtitle="Registration only asked for the basics. Everything below is what Admin actually checks before your Verified badge goes live — fill it in carefully."
@@ -185,12 +207,12 @@ export default function ProfilePage() {
           blurb="Who you are, what you're building, and what your team looks like today."
         >
           <Field label="Startup name" required>
-            <input className={inputCls} value={profile.startupName} onChange={(e) => updateProfile({ startupName: e.target.value })} />
+            <input className={inputCls} value={profile.startupName} onChange={(e) => handleChange({ startupName: e.target.value })} />
           </Field>
 
           <div className="grid gap-x-4 sm:grid-cols-2">
             <Field label="Sector" required>
-              <select className={inputCls} value={profile.sector} onChange={(e) => updateProfile({ sector: e.target.value })}>
+              <select className={inputCls} value={profile.sector} onChange={(e) => handleChange({ sector: e.target.value })}>
                 <option value="">Select sector</option>
                 {SECTORS.map((s) => (
                   <option key={s}>{s}</option>
@@ -198,7 +220,7 @@ export default function ProfilePage() {
               </select>
             </Field>
             <Field label="Stage" required>
-              <select className={inputCls} value={profile.stage} onChange={(e) => updateProfile({ stage: e.target.value })}>
+              <select className={inputCls} value={profile.stage} onChange={(e) => handleChange({ stage: e.target.value })}>
                 <option value="">Select stage</option>
                 {STAGES.map((s) => (
                   <option key={s}>{s}</option>
@@ -208,15 +230,15 @@ export default function ProfilePage() {
           </div>
 
           <Field label="One-line description" required>
-            <textarea rows={2} className={`${inputCls} resize-none`} value={profile.description} onChange={(e) => updateProfile({ description: e.target.value })} />
+            <textarea rows={2} className={`${inputCls} resize-none`} value={profile.description} onChange={(e) => handleChange({ description: e.target.value })} />
           </Field>
 
           <div className="grid gap-x-4 sm:grid-cols-2">
             <Field label="Funding ask (USD)" required>
-              <input type="number" className={inputCls} value={profile.ask} onChange={(e) => updateProfile({ ask: e.target.value })} />
+              <input type="number" className={inputCls} value={profile.ask} onChange={(e) => handleChange({ ask: e.target.value })} />
             </Field>
             <Field label="City / location" required>
-              <input className={inputCls} placeholder="e.g. Solapur, Maharashtra" value={profile.city} onChange={(e) => updateProfile({ city: e.target.value })} />
+              <input className={inputCls} placeholder="e.g. Solapur, Maharashtra" value={profile.city} onChange={(e) => handleChange({ city: e.target.value })} />
             </Field>
           </div>
 
@@ -225,7 +247,7 @@ export default function ProfilePage() {
               options={SKILL_OPTIONS}
               selected={profile.skillsHave}
               onToggle={(s) =>
-                updateProfile({
+                handleChange({
                   skillsHave: profile.skillsHave.includes(s)
                     ? profile.skillsHave.filter((x) => x !== s)
                     : [...profile.skillsHave, s],
@@ -239,7 +261,7 @@ export default function ProfilePage() {
               options={SKILL_OPTIONS}
               selected={profile.skillsNeeded}
               onToggle={(s) =>
-                updateProfile({
+                handleChange({
                   skillsNeeded: profile.skillsNeeded.includes(s)
                     ? profile.skillsNeeded.filter((x) => x !== s)
                     : [...profile.skillsNeeded, s],
@@ -249,7 +271,7 @@ export default function ProfilePage() {
           </Field>
 
           <Field label="Links" hint="Add your website, LinkedIn, Crunchbase, or other public profiles.">
-            <LinksEditor links={profile.links} onChange={(links) => updateProfile({ links })} />
+            <LinksEditor links={profile.links} onChange={(links) => handleChange({ links })} />
           </Field>
         </SectionCard>
 
@@ -268,7 +290,7 @@ export default function ProfilePage() {
             <FileUpload
               file={profile.registrationProofFile}
               onChange={(f) => {
-                updateProfile({ registrationProofFile: f });
+                handleChange({ registrationProofFile: f });
                 if (f)
                   notify({
                     type: "info",
@@ -283,21 +305,20 @@ export default function ProfilePage() {
           </Field>
 
           <Field
-            label="Company domain"
-            required
-            hint="We verify domain ownership and registration age via WHOIS — helps Admin confirm this isn't a throwaway/fake domain."
+            label="Company domain (optional)"
+            hint="Optional — confirms your domain is actually registered (via the public domain registry) so Admin can check it isn't a throwaway/fake domain."
           >
             <DomainVerify
               value={profile.domainVerification}
               onChange={(v) => {
                 const wasVerified = profile.domainVerification?.status === "verified";
-                updateProfile({ domainVerification: v });
+                handleChange({ domainVerification: v });
                 if (!wasVerified && v?.status === "verified")
                   notify({
                     type: "success",
                     icon: "domain",
                     title: "Domain verified",
-                    message: `${v.domain} passed the WHOIS check.`,
+                    message: `${v.domain} passed the registration check.`,
                   });
               }}
             />
@@ -315,7 +336,7 @@ export default function ProfilePage() {
             <FileUpload
               file={profile.pitchDeckFile}
               onChange={(f) => {
-                updateProfile({ pitchDeckFile: f });
+                handleChange({ pitchDeckFile: f });
                 if (f)
                   notify({
                     type: "info",
@@ -341,14 +362,16 @@ export default function ProfilePage() {
           : profile.status === "verified"
           ? "Already verified"
           : readyToSubmit
-          ? "Submit for Admin review"
+          ? submittedBefore
+            ? "Submit changes for re-review"
+            : "Submit for Admin review"
           : "Fill all required fields + documents to submit"}
       </Button>
 
       {profile.status !== "verified" && profile.status !== "pending_review" && (
         <p className="mt-3 text-center text-xs leading-relaxed text-muted">
-          Admin cannot review or verify your startup until every required field, the registration proof, domain
-          verification, and pitch deck are all complete.
+          Admin cannot review or verify your startup until every required field, the registration proof, and pitch deck are
+          all complete.
         </p>
       )}
     </div>

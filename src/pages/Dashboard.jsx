@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
 import {
   ArrowRight, TrendingUp, Handshake, Users, ShieldCheck,
-  GaugeCircle, ChevronRight, Rocket,
+  GaugeCircle, Rocket, Search,
 } from "lucide-react";
-import { investorMatches, teammateMatches, pitchScore } from "../data/dummyData";
 import { useAppState } from "../context/AppStateContext";
-import { Tag, Button, VerifyBadge, Avatar, ScorePill } from "../components/ui";
+import { Button, VerifyBadge, ScorePill, EmptyState } from "../components/ui";
 
 function StatCard({ label, value, sub, icon: Icon, tone = "brand" }) {
   const tones = {
@@ -25,31 +24,6 @@ function StatCard({ label, value, sub, icon: Icon, tone = "brand" }) {
       <p className="mt-3.5 font-display text-[26px] font-bold leading-none tracking-tight">{value}</p>
       <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
     </div>
-  );
-}
-
-function MiniMatchRow({ id, kind, name, meta, tags = [], score }) {
-  const to = kind === "investor" ? `/investors/${id}` : `/teammates/${id}`;
-  return (
-    <Link
-      to={to}
-      className="group -mx-2 flex items-center gap-3.5 rounded-xl px-2 py-3.5 transition-colors hover:bg-app"
-    >
-      <Avatar name={name} size={38} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1 text-sm font-semibold">
-          <span className="truncate">{name}</span>
-          <ChevronRight size={14} className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
-        </div>
-        <div className="mt-0.5 truncate text-xs text-muted">{meta}</div>
-        <div className="mt-1.5">
-          {tags.slice(0, 3).map((t) => (
-            <Tag key={t}>{t}</Tag>
-          ))}
-        </div>
-      </div>
-      <ScorePill value={score} />
-    </Link>
   );
 }
 
@@ -88,7 +62,7 @@ export default function Dashboard() {
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               {profile.status !== "verified" && profile.status !== "pending_review" && (
-                <Link to="/profile">
+                <Link to="/profile/edit">
                   <Button variant="primary">
                     Complete profile <ArrowRight size={14} />
                   </Button>
@@ -112,8 +86,8 @@ export default function Dashboard() {
       {/* status nudge */}
       {profile.status === "draft" && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card border border-amber/25 bg-amber-soft px-4 py-3.5 text-sm font-medium text-amber">
-          Your profile is a draft — Admin can't verify it until every required field, document, domain check and pitch deck are in.
-          <Link to="/profile" className="font-bold underline underline-offset-2 hover:no-underline">
+          Your profile is a draft — Admin can't verify it until every required field, document and pitch deck are in.
+          <Link to="/profile/edit" className="font-bold underline underline-offset-2 hover:no-underline">
             Finish it now
           </Link>
         </div>
@@ -121,7 +95,7 @@ export default function Dashboard() {
       {profile.status === "not_started" && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card border border-rose/25 bg-rose-soft px-4 py-3.5 text-sm font-medium text-rose">
           You haven't started your startup profile yet.
-          <Link to="/profile" className="font-bold underline underline-offset-2 hover:no-underline">
+          <Link to="/profile/edit" className="font-bold underline underline-offset-2 hover:no-underline">
             Start now
           </Link>
         </div>
@@ -134,65 +108,40 @@ export default function Dashboard() {
 
       {/* stats */}
       <div className="mb-9 grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard label="Pitch score" value={`${pitchScore.overall}`} sub="+6 this week" icon={GaugeCircle} tone="violet" />
-        <StatCard label="Investor matches" value={investorMatches.length} sub="AI ranked" icon={Handshake} tone="brand" />
+        <StatCard label="Pitch score" value="—" sub="Complete profile to score" icon={GaugeCircle} tone="violet" />
+        <StatCard label="Investor matches" value="0" sub="AI ranked" icon={Handshake} tone="brand" />
         <StatCard
           label="Open roles"
           value={profile.skillsNeeded?.length || 0}
-          sub={<span className="inline-flex items-center gap-1"><TrendingUp size={11} /> hiring</span>}
+          sub={profile.skillsNeeded?.length ? <span className="inline-flex items-center gap-1"><TrendingUp size={11} /> hiring</span> : "Add skills needed"}
           icon={Users}
           tone="emerald"
         />
         <StatCard label="Verification" value={<VerifyBadge status={profile.status} />} sub="Admin gated" icon={ShieldCheck} tone="amber" />
       </div>
 
-      {/* matches */}
+      {/* matches placeholder */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-card border border-line bg-raised p-5 shadow-card">
-          <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="font-display text-base font-semibold">Top investor matches</h2>
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">by fit score</span>
-          </div>
-          <div className="divide-y divide-line/70">
-            {investorMatches.slice(0, 3).map((inv) => (
-              <MiniMatchRow
-                key={inv.id}
-                id={inv.id}
-                kind="investor"
-                name={`${inv.name} · ${inv.org}`}
-                meta={`${inv.title} · ${inv.checkRange} check`}
-                tags={inv.sectors}
-                score={inv.score}
-              />
-            ))}
-          </div>
-          <Link to="/investors" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
-            View all investors <ArrowRight size={13} />
-          </Link>
-        </section>
-
-        <section className="rounded-card border border-line bg-raised p-5 shadow-card">
-          <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="font-display text-base font-semibold">Recommended teammates</h2>
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">close skill gaps</span>
-          </div>
-          <div className="divide-y divide-line/70">
-            {teammateMatches.slice(0, 3).map((t) => (
-              <MiniMatchRow
-                key={t.id}
-                id={t.id}
-                kind="teammate"
-                name={`${t.name} · ${t.role}`}
-                meta={`Available: ${t.availability} · ★ ${t.rating}`}
-                tags={t.skills}
-                score={t.score}
-              />
-            ))}
-          </div>
-          <Link to="/teammates" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
-            View all teammates <ArrowRight size={13} />
-          </Link>
-        </section>
+        <EmptyState
+          icon={Handshake}
+          title="No investor matches yet"
+          hint="Complete your startup profile to get AI-ranked investor matches based on your sector, stage, and funding needs."
+          action={
+            <Link to="/profile/edit">
+              <Button variant="soft">Complete profile</Button>
+            </Link>
+          }
+        />
+        <EmptyState
+          icon={Search}
+          title="No teammate matches yet"
+          hint="Add your team's skills and the roles you're looking for — we'll find collaborators to close your gaps."
+          action={
+            <Link to="/profile/edit">
+              <Button variant="soft">Complete profile</Button>
+            </Link>
+          }
+        />
       </div>
     </div>
   );

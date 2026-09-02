@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -16,16 +17,54 @@ export default function Register() {
 
   const canSendOtp = form.name && form.email && form.phone && form.password;
 
-  function handleSendOtp() {
-    if (!canSendOtp) return;
-    setOtpSent(true);
+async function handleSendOtp() {
+  if (!canSendOtp) return;
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: form.email,
+    options: {
+      shouldCreateUser: true,
+      data: {
+        full_name: form.name,
+        phone: form.phone,
+        role: "founder",
+      },
+    },
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
   }
 
-  function handleVerifyAndRegister() {
-    if (otp.trim().length < 4) return;
-    register({ name: form.name, email: form.email, phone: form.phone });
-    navigate("/profile");
+  setOtpSent(true);
+  alert("OTP sent to your email");
+}
+
+async function handleVerifyAndRegister() {
+  if (otp.trim().length < 6) return;
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: form.email,
+    token: otp,
+    type: "email",
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
   }
+
+  console.log("Verified user:", data.user);
+
+  register({
+    name: form.name,
+    email: form.email,
+    phone: form.phone,
+  });
+
+  navigate("/profile/edit");
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
@@ -92,16 +131,17 @@ export default function Register() {
           ) : (
             <div className="space-y-3.5">
               <p className="text-sm text-ink-soft">
-                We sent a 4-digit code to <b className="text-ink">{form.phone}</b> (simulated for demo — enter any 4 digits).
+                     We sent a 6-digit OTP to{" "}
+              <b className="text-ink">{form.email}</b>.
               </p>
-              <input
-                className={`${inputCls} text-center tracking-[0.5em] font-mono text-lg`}
-                maxLength={4}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                placeholder="0000"
-              />
-              <Button className="w-full" disabled={otp.length < 4} onClick={handleVerifyAndRegister}>
+          <input
+            className={`${inputCls} text-center tracking-[0.5em] font-mono text-lg`}
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+            placeholder="000000"
+          />  
+              <Button className="w-full" disabled={otp.length < 6} onClick={handleVerifyAndRegister}>
                 Verify & Continue
               </Button>
             </div>

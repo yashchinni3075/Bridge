@@ -10,6 +10,7 @@ import TeammateProfile from "./pages/TeammateProfile";
 import Calendar from "./pages/Calendar";
 import Milestones from "./pages/Milestones";
 import PitchScorePage from "./pages/PitchScorePage";
+import MyProfile from "./pages/MyProfile";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
@@ -27,7 +28,8 @@ export default function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/milestones" element={<Milestones />} />
             <Route path="/pitch" element={<PitchScorePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile" element={<MyProfile />} />
+            <Route path="/profile/edit" element={<ProfilePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
