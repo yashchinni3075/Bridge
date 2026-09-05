@@ -1,0 +1,9 @@
+node_modules/
+founda-backend/node_modules/
+founda-frontend/node_modules/
+.env
+founda-backend/.env
+uploads/
+founda-backend/uploads/
+*.log
+dist/
