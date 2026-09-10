@@ -1,0 +1,31 @@
+import nodemailer from 'nodemailer';
+
+export const sendOTPEmail = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === 'true', // false for port 587
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.SMTP_FROM || `"Bridge Platform" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Email Verification OTP',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 12px;">
+        <h2 style="color: #818cf8;">Welcome to Bridge!</h2>
+        <p>Your One-Time Password (OTP) for email verification is:</p>
+        <div style="background: #1e293b; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <h1 style="color: #818cf8; letter-spacing: 6px; margin: 0; font-size: 32px;">${otp}</h1>
+        </div>
+        <p style="font-size: 12px; color: #94a3b8;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
