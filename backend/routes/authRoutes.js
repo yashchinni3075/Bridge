@@ -1,0 +1,15 @@
+import express from 'express';
+import { registerUser, verifyEmailOTP, loginUser, getMe } from '../controllers/authController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { forgotPassword, resetPassword } from '../controllers/authController.js';
+
+const router = express.Router();
+
+router.post('/register', registerUser);
+router.post('/verify-email', verifyEmailOTP);
+router.post('/login', loginUser);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.get('/me', protect, getMe);
+
+export default router;
