@@ -44,7 +44,9 @@ export default function PitchEvaluationCenter() {
   const [historyTotal, setHistoryTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState('idle'); // idle | uploading | processing
+  const [uploadPercent, setUploadPercent] = useState(0);
+  const [pendingFileName, setPendingFileName] = useState('');
   const [uploadMark, setUploadMark] = useState(null);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -103,11 +105,26 @@ export default function PitchEvaluationCenter() {
   const handleDeckUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
     setError('');
     setUploadMark(null);
+    // Never show the previous file while a newly selected one is being processed.
+    setUploadedFile(null);
+    // A new upload auto-evaluates; clear any previous result so it is never
+    // mistaken for the fresh one (matches the manual-evaluate behaviour).
+    setCurrentResult(null);
+    setPendingFileName(file.name);
+    setUploadPercent(0);
+    setUploadPhase('uploading');
     try {
-      const res = await uploadPitchDeck(file);
+      const res = await uploadPitchDeck(file, (evt) => {
+        const total = evt?.total || 0;
+        if (total <= 0) return;
+        const pct = Math.min(99, Math.round((evt.loaded / total) * 100));
+        setUploadPercent(pct);
+        // Bytes are on the wire; the server is now extracting text and (when
+        // possible) running the AI evaluation before it answers.
+        if (pct >= 99) setUploadPhase('processing');
+      });
       const extractable = Boolean(res.evaluationAvailable);
       setUploadedFile({ name: res.pitchDeckOriginalName || file.name, extractable });
       setUploadMark({ type: extractable ? 'success' : 'warn', text: res.message });
@@ -121,7 +138,9 @@ export default function PitchEvaluationCenter() {
       setUploadedFile(null);
       setUploadMark({ type: 'error', text: err.response?.data?.message || 'Failed to upload pitch deck.' });
     } finally {
-      setUploading(false);
+      setUploadPhase('idle');
+      setUploadPercent(0);
+      setPendingFileName('');
       e.target.value = '';
     }
   };
@@ -149,6 +168,8 @@ export default function PitchEvaluationCenter() {
       setEvaluating(false);
     }
   };
+
+  const uploading = uploadPhase !== 'idle';
 
   if (loading) {
     return (
@@ -223,12 +244,39 @@ export default function PitchEvaluationCenter() {
             </p>
           </div>
         )}
-        {!uploadedFile && profile?.pitchDeckOriginalName && (
+        {!uploadedFile && !uploading && profile?.pitchDeckOriginalName && (
           <p className="text-[11px] text-slate-500">
             Current deck on file: {profile.pitchDeckOriginalName} — select and upload it again to run a new evaluation.
           </p>
         )}
       </div>
+
+      {uploadPhase !== 'idle' && (
+        <div className="p-6 rounded-3xl bg-slate-950/80 border border-slate-800/80 shadow-inner">
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-3 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-white uppercase tracking-wider">
+                {uploadPhase === 'uploading' ? 'Uploading pitch deck…' : 'Extracting text & running AI diligence…'}
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                <span className="text-slate-400">{pendingFileName}</span>
+                {uploadPhase === 'uploading'
+                  ? ` · ${uploadPercent}%`
+                  : ' · this can take a few seconds'}
+              </p>
+            </div>
+          </div>
+          {uploadPhase === 'uploading' && (
+            <div className="mt-3 w-full bg-slate-900 h-2 rounded-full overflow-hidden shadow-inner">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 transition-all duration-300"
+                style={{ width: `${uploadPercent}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {evaluating && (
         <div className="p-6 rounded-3xl bg-slate-950/80 border border-slate-800/80 shadow-inner">
@@ -241,13 +289,13 @@ export default function PitchEvaluationCenter() {
           </div>
         </div>
       )}
-      {!evaluating && currentResult && (
+      {!evaluating && !uploading && currentResult && (
         <ResultCard evaluation={currentResult} fromHistory={false} />
       )}
-      {!evaluating && !currentResult && historyLatest && (
+      {!evaluating && !uploading && !currentResult && historyLatest && (
         <ResultCard evaluation={historyLatest} fromHistory={true} />
       )}
-      {!evaluating && !currentResult && !historyLatest && (
+      {!evaluating && !uploading && !currentResult && !historyLatest && (
         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-12 text-center text-xs text-slate-400 shadow-xl">
           No AI evaluation yet. Upload a PDF pitch deck above to get started.
         </div>

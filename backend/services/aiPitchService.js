@@ -16,6 +16,29 @@ export const HONEST_SERVICE_ERROR = 'AI pitch evaluation is temporarily unavaila
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
 
+// Gemini intermittently returns 503 "experiencing high demand" (UNAVAILABLE) for
+// a specific model. Those spikes are per-model, so falling over to the next
+// model almost always finds a healthy one. The chain is also the retry order.
+export const GEMINI_MODEL_CHAIN = [
+  DEFAULT_GEMINI_MODEL,
+  'gemini-3-flash-preview',
+  'gemini-3.5-flash-lite',
+  'gemini-flash-latest',
+];
+
+const MAX_GEMINI_ATTEMPTS = GEMINI_MODEL_CHAIN.length;
+
+// Retryable = transient upstream problem (overload / rate limit / timeout) or a
+// model that no longer exists (so a retired name falls over to the next model).
+// Matched against both the error message and its status/code.
+const RETRYABLE_PATTERN = /503|429|500|404|high demand|resource exhausted|unavailable|overloaded|not found|deadline|timed?\s?out/i;
+
+const isRetryableError = (err) => {
+  const message = err?.message || '';
+  const status = String(err?.status ?? err?.code ?? '');
+  return RETRYABLE_PATTERN.test(message) || RETRYABLE_PATTERN.test(status);
+};
+
 export const PITCH_TEXT_MAX = 12000;
 
 const MIN_PITCH_CHARS = 150;
@@ -243,12 +266,16 @@ PITCH TEXT:
 """
 `;
 
-const callGeminiWithRetry = async (ai, prompt) => {
+export const callGeminiWithRetry = async (ai, prompt) => {
+  const primary = process.env.GEMINI_PITCH_MODEL || DEFAULT_GEMINI_MODEL;
+  const chain = [primary, ...GEMINI_MODEL_CHAIN.filter((model) => model !== primary)];
+
   let lastError = null;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= MAX_GEMINI_ATTEMPTS; attempt += 1) {
+    const model = chain[(attempt - 1) % chain.length];
     try {
-      return await ai.models.generateContent({
-        model: DEFAULT_GEMINI_MODEL,
+      const response = await ai.models.generateContent({
+        model,
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -273,14 +300,16 @@ const callGeminiWithRetry = async (ai, prompt) => {
           },
         },
       });
+      return { response, model };
     } catch (err) {
       lastError = err;
-      const retryable = /503|429|high demand|resource exhausted/i.test(err?.message || '');
-      if (retryable && attempt === 1) {
-        await wait(1500);
-        continue;
-      }
-      break;
+      if (!isRetryableError(err) || attempt === MAX_GEMINI_ATTEMPTS) break;
+      // Exponential backoff with jitter (≈1s, 2s, 4s) before trying the next model.
+      const delay = Math.min(8000, 1000 * 2 ** (attempt - 1)) + Math.floor(Math.random() * 400);
+      console.warn(
+        `Gemini ${model} attempt ${attempt}/${MAX_GEMINI_ATTEMPTS} failed (transient); retrying in ${delay}ms`
+      );
+      await wait(delay);
     }
   }
   console.error('Gemini pitch evaluation failure:', lastError?.message || 'unknown error');
@@ -409,10 +438,10 @@ export const evaluatePitchForStartup = async ({ startupProfile, inputSource, pit
 
   const ai = new GoogleGenAI({ apiKey });
   const prompt = buildPrompt({ startupName: startupProfile.startupName, pitchText: evaluationText });
-  const response = await callGeminiWithRetry(ai, prompt);
+  const { response, model } = await callGeminiWithRetry(ai, prompt);
 
   const raw = parseGeminiText(response?.text);
-  const result = buildEvaluationResult(raw, DEFAULT_GEMINI_MODEL);
+  const result = buildEvaluationResult(raw, model);
 
   return saveEvaluation({ startupProfile, inputSource: source, evaluationText, result });
 };
