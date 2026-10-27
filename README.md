@@ -1,4 +1,4 @@
-# Bridge
+## Bridge
 
 **Where startups, specialized talent, and investors meet — powered by AI.**
 
