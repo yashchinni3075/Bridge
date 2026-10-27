@@ -1,6 +1,6 @@
 ## Bridge
 
-**Where startups, specialized talent, and investors meet — powered by AI.**
+**Where startups, specialized talent(freelancers), and investors meet — powered by AI.**
 
 Bridge is a full-stack venture networking platform. Startups build verifiable profiles and raise funding, freelancers get matched to roles by an AI match engine, and investors discover vetted startups — with AI pitch-deck evaluation, realtime chat, and a DNS-verified trust layer on top.
 
