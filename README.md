@@ -249,3 +249,6 @@ Sockets authenticate via the same JWT (`protectSocket`) and join a personal room
 ---
 
 Built with the MERN stack + Gemini. Licensed for use by the Bridge team.
+
+
+----------------------------------------------------------------------------------------------------
